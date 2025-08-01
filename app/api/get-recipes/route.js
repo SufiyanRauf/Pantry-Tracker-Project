@@ -1,15 +1,8 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from 'next/server';
 
-// Configure the OpenAI client to use the OpenRouter API
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-  defaultHeaders: {
-    "HTTP-Referer": "https://pantry-tracker-project-seven.vercel.app/",
-    "X-Title": "Pantry Tracker Project", // Optional: A name for your app
-  },
-});
+// Initialize the Google AI client with your API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function POST(req) {
   try {
@@ -19,26 +12,27 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Inventory list is required.' }, { status: 400 });
     }
 
-    // Create the API request to OpenRouter
-    const response = await openai.chat.completions.create({
-      model: 'google/gemma-2-9b-it:free', // Using a powerful free model for text generation
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful chef. The user will provide a list of ingredients. Suggest 3 simple recipe ideas. Respond with a JSON object containing a single key "recipes" which is an array of strings. Example: {"recipes": ["Recipe 1", "Recipe 2", "Recipe 3"]}',
-        },
-        {
-          role: 'user',
-          content: `Here are my ingredients: ${inventory}`,
-        },
-      ],
-      response_format: { type: "json_object" },
+    // Get the generative model
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: {
+        response_mime_type: "application/json",
+      }
     });
+
+    const prompt = `You are a helpful chef. The user will provide a list of ingredients. Suggest 3 simple recipe ideas. Respond with a JSON object containing a single key "recipes" which is an array of strings. Example: {"recipes": ["Recipe 1", "Recipe 2", "Recipe 3"]}. Here are my ingredients: ${inventory}`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
     
-    // Parse the JSON response from the model
-    const recipeObject = JSON.parse(response.choices[0].message.content);
-    
-    return NextResponse.json(recipeObject);
+    // The response is already a JSON string, so we can return it directly.
+    // The browser will parse it.
+    return new NextResponse(text, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
   } catch (error) {
     console.error('Error getting recipes:', error);
