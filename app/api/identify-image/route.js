@@ -21,7 +21,7 @@ export async function POST(req) {
 
     // Create the API request to OpenRouter
     const response = await openai.chat.completions.create({
-      model: 'google/gemini-2.0-flash:free', // Corrected to a valid free vision model ID
+      model: 'nousresearch/nous-hermes-2-vision-7b:free', // Switched to a different free vision model
       messages: [
         {
           role: 'user',
