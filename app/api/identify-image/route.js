@@ -21,7 +21,7 @@ export async function POST(req) {
 
     // Create the API request to OpenRouter
     const response = await openai.chat.completions.create({
-      model: 'moonshotai/kimi-vl-a3b-thinking:free', // Using a free multimodal (vision) model
+      model: 'meta-llama/llama-4-maverick:free', // Using a different free multimodal model
       messages: [
         {
           role: 'user',
