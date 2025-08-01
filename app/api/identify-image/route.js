@@ -1,8 +1,14 @@
 import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
 
+// Configure the OpenAI client to use the OpenRouter API
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+  defaultHeaders: {
+    "HTTP-Referer": "https://pantry-tracker-project-seven.vercel.app/",
+    "X-Title": "Pantry Tracker Project", // Optional: A name for your app
+  },
 });
 
 export async function POST(req) {
@@ -13,8 +19,9 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Image data is required.' }, { status: 400 });
     }
 
+    // Create the API request to OpenRouter
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'moonshotai/kimi-vl-a3b-thinking:free', // Using a free multimodal (vision) model
       messages: [
         {
           role: 'user',
