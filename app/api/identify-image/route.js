@@ -21,7 +21,7 @@ export async function POST(req) {
 
     // Create the API request to OpenRouter
     const response = await openai.chat.completions.create({
-      model: 'meta-llama/llama-4-maverick:free', // Using a different free multimodal model
+      model: 'google/gemini-pro-vision:free', // Switched to Google's Gemini Pro Vision model
       messages: [
         {
           role: 'user',
