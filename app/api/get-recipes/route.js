@@ -1,8 +1,14 @@
 import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
 
+// Configure the OpenAI client to use the OpenRouter API
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+  defaultHeaders: {
+    "HTTP-Referer": "https://pantry-tracker-project-seven.vercel.app/",
+    "X-Title": "Pantry Tracker Project", // Optional: A name for your app
+  },
 });
 
 export async function POST(req) {
@@ -13,8 +19,9 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Inventory list is required.' }, { status: 400 });
     }
 
+    // Create the API request to OpenRouter
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'google/gemma-2-9b-it:free', // Using a powerful free model for text generation
       messages: [
         {
           role: 'system',
@@ -28,7 +35,7 @@ export async function POST(req) {
       response_format: { type: "json_object" },
     });
     
-    // The openai library automatically parses the JSON response when using response_format.
+    // Parse the JSON response from the model
     const recipeObject = JSON.parse(response.choices[0].message.content);
     
     return NextResponse.json(recipeObject);
