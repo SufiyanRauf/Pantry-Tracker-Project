@@ -1,15 +1,23 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from 'next/server';
 
-// Configure the OpenAI client to use the OpenRouter API
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-  defaultHeaders: {
-    "HTTP-Referer": "https://pantry-tracker-project-seven.vercel.app/",
-    "X-Title": "Pantry Tracker Project", // Optional: A name for your app
-  },
-});
+// Initialize the Google AI client with your API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Function to convert a data URL to a GoogleGenerativeAI.Part object
+function fileToGenerativePart(dataUrl) {
+  // Expected format: "data:image/jpeg;base64,..."
+  const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
+  if (!match) {
+    throw new Error('Invalid data URL format');
+  }
+  return {
+    inlineData: {
+      data: match[2],
+      mimeType: match[1],
+    },
+  };
+}
 
 export async function POST(req) {
   try {
@@ -19,27 +27,20 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Image data is required.' }, { status: 400 });
     }
 
-    // Create the API request to OpenRouter with the corrected model name
-    const response = await openai.chat.completions.create({
-      model: 'nousresearch/nous-hermes-2-vision-7b', // Corrected to a compatible free model
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: 'What is the single main food item in this image? Respond with only the name of the food item in lowercase. For example: "apple" or "banana".' },
-            {
-              type: 'image_url',
-              image_url: {
-                url: image,
-              },
-            },
-          ],
-        },
-      ],
-      max_tokens: 30,
-    });
+    // Get the generative model
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = 'What is the single main food item in this image? Respond with only the name of the food item in lowercase. For example: "apple" or "banana".';
     
-    const itemName = response.choices[0].message.content;
+    const imagePart = fileToGenerativePart(image);
+
+    const result = await model.generateContent([prompt, imagePart]);
+    const response = await result.response;
+    const text = response.text();
+
+    // Clean up the response to remove any potential markdown or extra spaces
+    const itemName = text.trim().replace(/`/g, '');
+
     return NextResponse.json({ item: itemName });
 
   } catch (error) {
