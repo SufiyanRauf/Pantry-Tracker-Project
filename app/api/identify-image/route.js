@@ -19,9 +19,9 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Image data is required.' }, { status: 400 });
     }
 
-    // Create the API request to OpenRouter
+    // Create the API request to OpenRouter with the corrected model name
     const response = await openai.chat.completions.create({
-      model: 'nousresearch/nous-hermes-2-vision-7b:free', // Switched to a different free vision model
+      model: 'nousresearch/nous-hermes-2-vision-7b', // Corrected to a compatible free model
       messages: [
         {
           role: 'user',
