@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { firestore } from "@/firebase";
-import { Box, Modal, Typography, Stack, Button, TextField } from '@mui/material';
+import { Box, Modal, Typography, Stack, Button, TextField, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { collection, getDocs, deleteDoc, query, setDoc, doc, getDoc } from 'firebase/firestore';
 
 export default function Home() {
@@ -14,6 +14,15 @@ export default function Home() {
   const [recipes, setRecipes] = useState([]);
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const showSnackbar = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
+  const closeSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'));
@@ -58,13 +67,12 @@ export default function Home() {
   };
 
   const clearInventory = async () => {
-    if (inventory.length === 0) return;
-    const confirmed = window.confirm('Clear all items from your pantry? This cannot be undone.');
-    if (!confirmed) return;
     for (const item of inventory) {
       await deleteDoc(doc(collection(firestore, 'inventory'), item.name));
     }
     await updateInventory();
+    setConfirmOpen(false);
+    showSnackbar('Pantry cleared.', 'success');
   };
 
   useEffect(() => {
@@ -102,13 +110,13 @@ export default function Home() {
         if (response.ok) {
           const identifiedItem = data.item;
           addItem(identifiedItem);
-          alert(`${identifiedItem.charAt(0).toUpperCase() + identifiedItem.slice(1)} added to inventory!`);
+          showSnackbar(`${identifiedItem.charAt(0).toUpperCase() + identifiedItem.slice(1)} added to inventory!`, 'success');
         } else {
-          alert(`Error: ${data.error}`);
+          showSnackbar(`Error: ${data.error}`, 'error');
         }
       } catch (error) {
         console.error("Failed to upload image:", error);
-        alert("Failed to identify the image. Please try again.");
+        showSnackbar('Failed to identify the image. Please try again.', 'error');
       }
     };
   };
@@ -116,7 +124,7 @@ export default function Home() {
   const handleGetRecipes = async () => {
     const inventoryNames = inventory.map(item => item.name).join(', ');
     if (!inventoryNames) {
-      alert("Your pantry is empty! Add some items to get recipes.");
+      showSnackbar('Your pantry is empty! Add some items to get recipes.', 'warning');
       return;
     }
 
@@ -136,11 +144,11 @@ export default function Home() {
       if (response.ok) {
         setRecipes(data.recipes);
       } else {
-        alert(`Error: ${data.error}`);
+        showSnackbar(`Error: ${data.error}`, 'error');
       }
     } catch (error) {
       console.error("Failed to fetch from API route:", error);
-      alert("Failed to get recipes. Check the console for more details.");
+      showSnackbar('Failed to get recipes. Check the console for more details.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +236,7 @@ export default function Home() {
         </Button>
         <Button
           variant="outlined"
-          onClick={clearInventory}
+          onClick={() => setConfirmOpen(true)}
           disabled={inventory.length === 0}
           sx={{ color: '#2e7d32', borderColor: '#a5cfa8', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { borderColor: '#2e7d32', bgcolor: '#edf7ee' } }}
         >
@@ -318,6 +326,34 @@ export default function Home() {
         </Box>
       </Box>
       </Stack>
+
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogTitle sx={{ color: '#7c2d12' }}>Clear pantry?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This removes all {inventory.length} item{inventory.length === 1 ? '' : 's'} from your pantry. This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setConfirmOpen(false)} sx={{ color: '#6b5d4f', textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button onClick={clearInventory} variant="contained" sx={{ bgcolor: '#2e7d32', textTransform: 'none', '&:hover': { bgcolor: '#1b5e20' } }}>
+            Clear all
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={closeSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={closeSnackbar} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
