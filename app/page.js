@@ -11,7 +11,6 @@ export default function Home() {
   const [itemName, setItemName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [openRecipe, setOpenRecipe] = useState(false);
   const [recipes, setRecipes] = useState([]);
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +56,17 @@ export default function Home() {
     }
     await updateInventory();
   };
-  
+
+  const clearInventory = async () => {
+    if (inventory.length === 0) return;
+    const confirmed = window.confirm('Clear all items from your pantry? This cannot be undone.');
+    if (!confirmed) return;
+    for (const item of inventory) {
+      await deleteDoc(doc(collection(firestore, 'inventory'), item.name));
+    }
+    await updateInventory();
+  };
+
   useEffect(() => {
     updateInventory();
   }, []);
@@ -126,7 +135,6 @@ export default function Home() {
 
       if (response.ok) {
         setRecipes(data.recipes);
-        setOpenRecipe(true);
       } else {
         alert(`Error: ${data.error}`);
       }
@@ -140,13 +148,14 @@ export default function Home() {
   
   return (
     <Box
-      width="100vw"
-      height="100vh"
+      width="100%"
+      minHeight="100vh"
       display="flex"
       flexDirection="column"
-      justifyContent="center"
+      justifyContent="flex-start"
       alignItems="center"
       gap={2}
+      sx={{ bgcolor: '#fff5e9', py: 5 }}
     >
       <input
         type="file"
@@ -161,7 +170,7 @@ export default function Home() {
         width={800}
         height={400}
         alt="Pantry"
-        style={{ borderRadius: '8px' }}
+        style={{ borderRadius: '8px', objectFit: 'cover' }}
       />
 
       <Modal open={open} onClose={handleClose}>
@@ -171,7 +180,8 @@ export default function Home() {
           left="50%"
           width={400}
           bgcolor="white"
-          border="2px solid #000"
+          border="1px solid #eaddc7"
+          borderRadius={2}
           boxShadow={24}
           p={4}
           display="flex"
@@ -201,91 +211,85 @@ export default function Home() {
         </Box>
       </Modal>
 
-      <Modal open={openRecipe} onClose={() => setOpenRecipe(false)}>
-        <Box
-          position="absolute"
-          top="50%"
-          left="50%"
-          width={400}
-          bgcolor="white"
-          border="2px solid #000"
-          boxShadow={24}
-          p={4}
-          display="flex"
-          flexDirection="column"
-          gap={2}
-          sx={{ transform: 'translate(-50%, -50%)' }}
-        >
-          <Typography variant="h6">Suggested Recipes</Typography>
-          <Stack>
-            {recipes.map((recipe, index) => (
-              <Typography key={index} variant="body1">{`• ${recipe}`}</Typography>
-            ))}
-          </Stack>
-        </Box>
-      </Modal>
-
       <Stack direction="row" spacing={2}>
-        <Button variant="contained" onClick={handleOpen}>
+        <Button variant="contained" onClick={handleOpen} sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}>
           Add New Item
         </Button>
-        <Button variant="contained" color="secondary" onClick={() => fileInputRef.current.click()}>
+        <Button variant="contained" onClick={() => fileInputRef.current.click()} sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}>
           Add by Image
         </Button>
-        <Button 
-          variant="contained" 
-          color="success" 
+        <Button
+          variant="contained"
           onClick={handleGetRecipes}
           disabled={isLoading}
+          sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}
         >
           {isLoading ? 'Getting Recipes...' : 'Get Recipes'}
         </Button>
+        <Button
+          variant="outlined"
+          onClick={clearInventory}
+          disabled={inventory.length === 0}
+          sx={{ color: '#2e7d32', borderColor: '#a5cfa8', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { borderColor: '#2e7d32', bgcolor: '#edf7ee' } }}
+        >
+          Clear Inventory
+        </Button>
       </Stack>
 
-      <TextField
-        variant="outlined"
-        placeholder="Search..."
-        fullWidth
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        sx={{ width: '800px', mt: 2 }}
-      />
-      
-      <Box sx={{ border: '1px solid #333', mt: 1 }}>
+      <Stack direction="row" spacing={2} alignItems="flex-start" flexWrap="wrap" justifyContent="center" sx={{ mt: 2 }}>
+      <Box sx={{ border: '1px solid #c2a47e', borderRadius: 2, overflow: 'hidden' }}>
         <Box
           width="800px"
-          height="100px"
-          bgcolor="#ADD8E6"
+          height="64px"
+          bgcolor="#fdba74"
           display="flex"
           alignItems="center"
           justifyContent="center"
         >
-          <Typography variant='h2' color="#333">
+          <Typography variant='h4' color="#7c2d12">
             Inventory Items
           </Typography>
         </Box>
-        <Stack width="800px" height="300px" spacing={2} overflow="auto">
+        <Box width="800px" sx={{ p: 2, bgcolor: '#fffaf3', borderBottom: '1px solid #f1e4d2' }}>
+          <TextField
+            variant="outlined"
+            placeholder="Search items..."
+            fullWidth
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{
+              bgcolor: '#fff',
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: '#c2a47e' },
+                '&:hover fieldset': { borderColor: '#9a7b54' },
+                '&.Mui-focused fieldset': { borderColor: '#c2410c' },
+              },
+              '& .MuiOutlinedInput-input::placeholder': { color: '#7c6a55', opacity: 1 },
+            }}
+          />
+        </Box>
+        <Stack width="800px" height="300px" spacing={0} overflow="auto" sx={{ bgcolor: '#fffaf3' }}>
           {filteredInventory.map(({ name, quantity }) => (
             <Box
               key={name}
               width="100%"
-              minHeight="150px"
               display="flex"
               alignItems="center"
               justifyContent="space-between"
-              sx={{ bgcolor: '#f0f0f0', padding: 5 }}
+              sx={{ px: 3, py: 1.5, borderBottom: '1px solid #f1e4d2' }}
             >
-              <Typography variant="h3" color="#333" textAlign="center">
+              <Typography variant="h6" color="#3f2d1c" sx={{ flex: 1 }}>
                 {name.charAt(0).toUpperCase() + name.slice(1)}
               </Typography>
-              <Typography variant="h3" color="#333" textAlign="center">
+              <Typography variant="h6" color="#3f2d1c" sx={{ width: 48, textAlign: 'center' }}>
                 {quantity}
               </Typography>
-              <Stack direction="row" spacing={2}>
-                <Button variant="contained" onClick={() => addItem(name)}>
+              <Stack direction="row" spacing={1}>
+                <Button variant="contained" size="small" onClick={() => addItem(name)} sx={{ bgcolor: '#2e7d32', textTransform: 'none', minWidth: 64, '&:hover': { bgcolor: '#1b5e20' } }}>
                   Add
                 </Button>
-                <Button variant="contained" onClick={() => removeItem(name)}>
+                <Button variant="outlined" size="small" onClick={() => removeItem(name)} sx={{ color: '#6b5d4f', borderColor: '#d8c8b4', textTransform: 'none', minWidth: 64, '&:hover': { borderColor: '#6b5d4f', bgcolor: '#f5efe6' } }}>
                   Remove
                 </Button>
               </Stack>
@@ -293,6 +297,27 @@ export default function Home() {
           ))}
         </Stack>
       </Box>
+
+      <Box sx={{ width: '340px', height: '435px', border: '1px solid #c2a47e', borderRadius: 2, bgcolor: '#fff', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ p: 2, borderBottom: '1px solid #c2a47e' }}>
+          <Typography variant="h5" sx={{ color: '#7c2d12', fontWeight: 700 }}>
+            Suggested Recipes
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5, color: '#6b5d4f' }}>
+            Click the Get Recipes button to see ideas based on what is in your pantry.
+          </Typography>
+        </Box>
+        <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+          {recipes.length > 0 && (
+            <Stack spacing={1}>
+              {recipes.map((recipe, index) => (
+                <Typography key={index} variant="body1">{`• ${recipe}`}</Typography>
+              ))}
+            </Stack>
+          )}
+        </Box>
+      </Box>
+      </Stack>
     </Box>
   );
 }
