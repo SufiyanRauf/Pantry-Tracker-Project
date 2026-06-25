@@ -193,7 +193,7 @@ export default function Home() {
           AI Pantry Tracker
         </Typography>
         <Typography variant="subtitle1" sx={{ mt: 1, color: '#7c6a55' }}>
-          Add items by typing or photo, keep track of what you have, and get recipe ideas from your pantry.
+          Keep track of what is in your pantry and find recipes for it. Add items by typing or photo.
         </Typography>
       </Box>
 
@@ -203,7 +203,7 @@ export default function Home() {
           width: '100%',
           maxWidth: '960px',
           aspectRatio: '5 / 2',
-          borderRadius: '8px',
+          borderRadius: 2,
           overflow: 'hidden',
         }}
       >
@@ -259,7 +259,7 @@ export default function Home() {
         <Button variant="contained" onClick={handleOpen} sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}>
           Add New Item
         </Button>
-        <Button variant="contained" onClick={() => fileInputRef.current.click()} disabled={isIdentifying} sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}>
+        <Button variant="outlined" onClick={() => fileInputRef.current.click()} disabled={isIdentifying} sx={{ color: '#2e7d32', borderColor: '#a5cfa8', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { borderColor: '#2e7d32', bgcolor: '#edf7ee' } }}>
           {isIdentifying ? 'Identifying...' : 'Add by Image'}
         </Button>
         <Button
@@ -274,7 +274,7 @@ export default function Home() {
           variant="outlined"
           onClick={() => setConfirmOpen(true)}
           disabled={inventory.length === 0}
-          sx={{ color: '#2e7d32', borderColor: '#a5cfa8', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { borderColor: '#2e7d32', bgcolor: '#edf7ee' } }}
+          sx={{ color: '#6b5d4f', borderColor: '#d8c8b4', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { borderColor: '#6b5d4f', bgcolor: '#f5efe6' } }}
         >
           Clear Inventory
         </Button>
@@ -339,11 +339,11 @@ export default function Home() {
                   {quantity}
                 </Typography>
                 <Stack direction="row" spacing={1}>
-                  <Button variant="contained" size="small" onClick={() => addItem(name)} sx={{ bgcolor: '#2e7d32', textTransform: 'none', minWidth: 64, '&:hover': { bgcolor: '#1b5e20' } }}>
-                    Add
+                  <Button variant="contained" size="small" aria-label="Increase quantity" onClick={() => addItem(name)} sx={{ bgcolor: '#2e7d32', textTransform: 'none', minWidth: 40, '&:hover': { bgcolor: '#1b5e20' } }}>
+                    +
                   </Button>
-                  <Button variant="outlined" size="small" onClick={() => removeItem(name)} sx={{ color: '#6b5d4f', borderColor: '#d8c8b4', textTransform: 'none', minWidth: 64, '&:hover': { borderColor: '#6b5d4f', bgcolor: '#f5efe6' } }}>
-                    Remove
+                  <Button variant="outlined" size="small" aria-label="Decrease quantity" onClick={() => removeItem(name)} sx={{ color: '#6b5d4f', borderColor: '#d8c8b4', textTransform: 'none', minWidth: 40, '&:hover': { borderColor: '#6b5d4f', bgcolor: '#f5efe6' } }}>
+                    −
                   </Button>
                 </Stack>
               </Box>
