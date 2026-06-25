@@ -2,6 +2,8 @@
 
 A full-stack inventory app for tracking what's in your pantry. Built with Next.js and Firebase, it uses Google Gemini's vision model to identify food items from photos and generates recipe ideas from whatever you have on hand.
 
+I built this after volunteering at a food bank with Community Action Partnership of Orange County, helping run weekly food distributions for low-income seniors and managing the logistics of getting food to people. Working that closely with food and keeping track of what we had is what got me interested in building a pantry app of my own.
+
 **Live demo:** https://pantry-tracker-project-seven.vercel.app/
 
 ![AI Pantry Tracker](screenshot.png)
