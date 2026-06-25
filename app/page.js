@@ -14,6 +14,7 @@ export default function Home() {
   const [recipes, setRecipes] = useState([]);
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isIdentifying, setIsIdentifying] = useState(false);
 
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -71,6 +72,8 @@ export default function Home() {
       await deleteDoc(doc(collection(firestore, 'inventory'), item.name));
     }
     await updateInventory();
+    setRecipes([]);
+    setSearchQuery('');
     setConfirmOpen(false);
     showSnackbar('Pantry cleared.', 'success');
   };
@@ -81,6 +84,14 @@ export default function Home() {
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  const handleAddFromModal = () => {
+    const trimmed = itemName.trim();
+    if (!trimmed) return;
+    addItem(trimmed);
+    setItemName('');
+    handleClose();
+  };
 
   const filteredInventory = inventory.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -95,6 +106,7 @@ export default function Home() {
 
     reader.onloadend = async () => {
       const base64Image = reader.result;
+      setIsIdentifying(true);
 
       try {
         const response = await fetch('/api/identify-image', {
@@ -117,6 +129,9 @@ export default function Home() {
       } catch (error) {
         console.error("Failed to upload image:", error);
         showSnackbar('Failed to identify the image. Please try again.', 'error');
+      } finally {
+        setIsIdentifying(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     };
   };
@@ -172,13 +187,22 @@ export default function Home() {
         style={{ display: 'none' }}
         accept="image/*"
       />
-      
+
+      <Box sx={{ textAlign: 'center', maxWidth: '860px', px: 2 }}>
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 700, color: '#7c2d12' }}>
+          AI Pantry Tracker
+        </Typography>
+        <Typography variant="subtitle1" sx={{ mt: 1, color: '#7c6a55' }}>
+          Add items by typing or photo, keep track of what you have, and get recipe ideas from your pantry.
+        </Typography>
+      </Box>
+
       <Box
         sx={{
           position: 'relative',
           width: '100%',
           maxWidth: '960px',
-          aspectRatio: '2 / 1',
+          aspectRatio: '5 / 2',
           borderRadius: '8px',
           overflow: 'hidden',
         }}
@@ -199,7 +223,7 @@ export default function Home() {
           left="50%"
           width={{ xs: '90%', sm: 400 }}
           bgcolor="white"
-          border="1px solid #eaddc7"
+          border="1px solid #c2a47e"
           borderRadius={2}
           boxShadow={24}
           p={4}
@@ -208,21 +232,22 @@ export default function Home() {
           gap={3}
           sx={{ transform: 'translate(-50%, -50%)' }}
         >
-          <Typography variant="h6">Add Item</Typography>
+          <Typography variant="h6" sx={{ color: '#7c2d12', fontWeight: 700 }}>Add Item</Typography>
           <Stack width="100%" direction="row" spacing={2}>
             <TextField
               variant="outlined"
+              placeholder="e.g. Milk"
               fullWidth
+              autoFocus
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAddFromModal(); }}
             />
             <Button
-              variant="outlined"
-              onClick={() => {
-                addItem(itemName);
-                setItemName('');
-                handleClose();
-              }}
+              variant="contained"
+              onClick={handleAddFromModal}
+              disabled={!itemName.trim()}
+              sx={{ bgcolor: '#2e7d32', textTransform: 'none', '&:hover': { bgcolor: '#1b5e20' } }}
             >
               Add
             </Button>
@@ -234,8 +259,8 @@ export default function Home() {
         <Button variant="contained" onClick={handleOpen} sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}>
           Add New Item
         </Button>
-        <Button variant="contained" onClick={() => fileInputRef.current.click()} sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}>
-          Add by Image
+        <Button variant="contained" onClick={() => fileInputRef.current.click()} disabled={isIdentifying} sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}>
+          {isIdentifying ? 'Identifying...' : 'Add by Image'}
         </Button>
         <Button
           variant="contained"
@@ -265,7 +290,7 @@ export default function Home() {
           alignItems="center"
           justifyContent="center"
         >
-          <Typography variant='h4' color="#7c2d12">
+          <Typography variant="h5" color="#7c2d12" sx={{ fontWeight: 700 }}>
             Inventory Items
           </Typography>
         </Box>
@@ -289,31 +314,41 @@ export default function Home() {
           />
         </Box>
         <Stack width="100%" height="300px" spacing={0} overflow="auto" sx={{ bgcolor: '#fffaf3' }}>
-          {filteredInventory.map(({ name, quantity }) => (
-            <Box
-              key={name}
-              width="100%"
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{ px: 3, py: 1.5, borderBottom: '1px solid #f1e4d2' }}
-            >
-              <Typography variant="h6" color="#3f2d1c" sx={{ flex: 1 }}>
-                {name.charAt(0).toUpperCase() + name.slice(1)}
+          {filteredInventory.length === 0 ? (
+            <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', px: 3 }}>
+              <Typography variant="body2" sx={{ color: '#7c6a55', textAlign: 'center' }}>
+                {inventory.length === 0
+                  ? 'Your pantry is empty. Add an item to get started.'
+                  : `No items match "${searchQuery}".`}
               </Typography>
-              <Typography variant="h6" color="#3f2d1c" sx={{ width: 48, textAlign: 'center' }}>
-                {quantity}
-              </Typography>
-              <Stack direction="row" spacing={1}>
-                <Button variant="contained" size="small" onClick={() => addItem(name)} sx={{ bgcolor: '#2e7d32', textTransform: 'none', minWidth: 64, '&:hover': { bgcolor: '#1b5e20' } }}>
-                  Add
-                </Button>
-                <Button variant="outlined" size="small" onClick={() => removeItem(name)} sx={{ color: '#6b5d4f', borderColor: '#d8c8b4', textTransform: 'none', minWidth: 64, '&:hover': { borderColor: '#6b5d4f', bgcolor: '#f5efe6' } }}>
-                  Remove
-                </Button>
-              </Stack>
             </Box>
-          ))}
+          ) : (
+            filteredInventory.map(({ name, quantity }) => (
+              <Box
+                key={name}
+                width="100%"
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ px: 3, py: 1.5, borderBottom: '1px solid #f1e4d2' }}
+              >
+                <Typography variant="body1" color="#3f2d1c" sx={{ flex: 1, fontWeight: 500 }}>
+                  {name.charAt(0).toUpperCase() + name.slice(1)}
+                </Typography>
+                <Typography variant="body1" color="#3f2d1c" sx={{ width: 48, textAlign: 'center', fontWeight: 600 }}>
+                  {quantity}
+                </Typography>
+                <Stack direction="row" spacing={1}>
+                  <Button variant="contained" size="small" onClick={() => addItem(name)} sx={{ bgcolor: '#2e7d32', textTransform: 'none', minWidth: 64, '&:hover': { bgcolor: '#1b5e20' } }}>
+                    Add
+                  </Button>
+                  <Button variant="outlined" size="small" onClick={() => removeItem(name)} sx={{ color: '#6b5d4f', borderColor: '#d8c8b4', textTransform: 'none', minWidth: 64, '&:hover': { borderColor: '#6b5d4f', bgcolor: '#f5efe6' } }}>
+                    Remove
+                  </Button>
+                </Stack>
+              </Box>
+            ))
+          )}
         </Stack>
       </Box>
 
@@ -327,13 +362,15 @@ export default function Home() {
           </Typography>
         </Box>
         <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
-          {recipes.length > 0 && (
+          {isLoading ? (
+            <Typography variant="body2" sx={{ color: '#6b5d4f' }}>Finding recipes...</Typography>
+          ) : recipes.length > 0 ? (
             <Stack spacing={1}>
               {recipes.map((recipe, index) => (
                 <Typography key={index} variant="body1">{`• ${recipe}`}</Typography>
               ))}
             </Stack>
-          )}
+          ) : null}
         </Box>
       </Box>
       </Stack>
