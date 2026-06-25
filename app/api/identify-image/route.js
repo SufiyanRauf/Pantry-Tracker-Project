@@ -28,7 +28,7 @@ export async function POST(req) {
     }
 
     // Get the generative model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = 'What is the single main food item in this image? Respond with only the name of the food item in lowercase. For example: "apple" or "banana".';
     
