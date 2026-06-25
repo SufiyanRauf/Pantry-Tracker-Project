@@ -163,7 +163,7 @@ export default function Home() {
       justifyContent="flex-start"
       alignItems="center"
       gap={2}
-      sx={{ bgcolor: '#fff5e9', py: 5 }}
+      sx={{ bgcolor: '#fff5e9', py: 5, px: { xs: 2, sm: 3 }, boxSizing: 'border-box' }}
     >
       <input
         type="file"
@@ -178,7 +178,7 @@ export default function Home() {
         width={800}
         height={400}
         alt="Pantry"
-        style={{ borderRadius: '8px', objectFit: 'cover' }}
+        style={{ borderRadius: '8px', objectFit: 'cover', width: '100%', maxWidth: '800px', height: 'auto' }}
       />
 
       <Modal open={open} onClose={handleClose}>
@@ -186,7 +186,7 @@ export default function Home() {
           position="absolute"
           top="50%"
           left="50%"
-          width={400}
+          width={{ xs: '90%', sm: 400 }}
           bgcolor="white"
           border="1px solid #eaddc7"
           borderRadius={2}
@@ -219,7 +219,7 @@ export default function Home() {
         </Box>
       </Modal>
 
-      <Stack direction="row" spacing={2}>
+      <Stack direction="row" spacing={2} flexWrap="wrap" justifyContent="center" useFlexGap>
         <Button variant="contained" onClick={handleOpen} sx={{ bgcolor: '#2e7d32', textTransform: 'none', px: 3, py: 1, fontSize: '1rem', '&:hover': { bgcolor: '#1b5e20' } }}>
           Add New Item
         </Button>
@@ -245,9 +245,9 @@ export default function Home() {
       </Stack>
 
       <Stack direction="row" spacing={2} alignItems="flex-start" flexWrap="wrap" justifyContent="center" sx={{ mt: 2 }}>
-      <Box sx={{ border: '1px solid #c2a47e', borderRadius: 2, overflow: 'hidden' }}>
+      <Box sx={{ width: { xs: '100%', md: '800px' }, border: '1px solid #c2a47e', borderRadius: 2, overflow: 'hidden' }}>
         <Box
-          width="800px"
+          width="100%"
           height="64px"
           bgcolor="#fdba74"
           display="flex"
@@ -258,7 +258,7 @@ export default function Home() {
             Inventory Items
           </Typography>
         </Box>
-        <Box width="800px" sx={{ p: 2, bgcolor: '#fffaf3', borderBottom: '1px solid #f1e4d2' }}>
+        <Box width="100%" sx={{ p: 2, bgcolor: '#fffaf3', borderBottom: '1px solid #f1e4d2' }}>
           <TextField
             variant="outlined"
             placeholder="Search items..."
@@ -277,7 +277,7 @@ export default function Home() {
             }}
           />
         </Box>
-        <Stack width="800px" height="300px" spacing={0} overflow="auto" sx={{ bgcolor: '#fffaf3' }}>
+        <Stack width="100%" height="300px" spacing={0} overflow="auto" sx={{ bgcolor: '#fffaf3' }}>
           {filteredInventory.map(({ name, quantity }) => (
             <Box
               key={name}
@@ -306,7 +306,7 @@ export default function Home() {
         </Stack>
       </Box>
 
-      <Box sx={{ width: '340px', height: '435px', border: '1px solid #c2a47e', borderRadius: 2, bgcolor: '#fff', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ width: { xs: '100%', md: '340px' }, height: '435px', border: '1px solid #c2a47e', borderRadius: 2, bgcolor: '#fff', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ p: 2, borderBottom: '1px solid #c2a47e' }}>
           <Typography variant="h5" sx={{ color: '#7c2d12', fontWeight: 700 }}>
             Suggested Recipes
