@@ -173,13 +173,24 @@ export default function Home() {
         accept="image/*"
       />
       
-      <Image 
-        src="/pantry-image.jpeg"
-        width={800}
-        height={400}
-        alt="Pantry"
-        style={{ borderRadius: '8px', objectFit: 'cover', width: '100%', maxWidth: '800px', height: 'auto' }}
-      />
+      <Box
+        sx={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '960px',
+          aspectRatio: '2 / 1',
+          borderRadius: '8px',
+          overflow: 'hidden',
+        }}
+      >
+        <Image
+          src="/pantry-image.jpeg"
+          alt="Pantry"
+          fill
+          sizes="(max-width: 960px) 100vw, 960px"
+          style={{ objectFit: 'cover' }}
+        />
+      </Box>
 
       <Modal open={open} onClose={handleClose}>
         <Box
@@ -245,7 +256,7 @@ export default function Home() {
       </Stack>
 
       <Stack direction="row" spacing={2} alignItems="flex-start" flexWrap="wrap" justifyContent="center" sx={{ mt: 2 }}>
-      <Box sx={{ width: { xs: '100%', md: '800px' }, border: '1px solid #c2a47e', borderRadius: 2, overflow: 'hidden' }}>
+      <Box sx={{ width: { xs: '100%', md: '600px' }, border: '1px solid #c2a47e', borderRadius: 2, overflow: 'hidden' }}>
         <Box
           width="100%"
           height="64px"
