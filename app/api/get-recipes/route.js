@@ -1,7 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from 'next/server';
 
-// Initialize the Google AI client with your API key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function POST(req) {
@@ -12,8 +11,7 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Inventory list is required.' }, { status: 400 });
     }
 
-    // Get the generative model
-    const model = genAI.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: {
         response_mime_type: "application/json",
@@ -25,9 +23,8 @@ export async function POST(req) {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
-    // The response is already a JSON string, so we can return it directly.
-    // The browser will parse it.
+
+    // model already returns JSON, so pass it straight through
     return new NextResponse(text, {
       headers: {
         'Content-Type': 'application/json',

@@ -1,12 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from 'next/server';
 
-// Initialize the Google AI client with your API key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Function to convert a data URL to a GoogleGenerativeAI.Part object
 function fileToGenerativePart(dataUrl) {
-  // Expected format: "data:image/jpeg;base64,..."
+  // split a "data:image/jpeg;base64,..." string into mime + data
   const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
   if (!match) {
     throw new Error('Invalid data URL format');
@@ -27,7 +25,6 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Image data is required.' }, { status: 400 });
     }
 
-    // Get the generative model
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = 'What is the single main food item in this image? Respond with only the name of the food item in lowercase. For example: "apple" or "banana".';
@@ -38,7 +35,7 @@ export async function POST(req) {
     const response = await result.response;
     const text = response.text();
 
-    // Clean up the response to remove any potential markdown or extra spaces
+    // strip stray backticks/whitespace the model sometimes adds
     const itemName = text.trim().replace(/`/g, '');
 
     return NextResponse.json({ item: itemName });
